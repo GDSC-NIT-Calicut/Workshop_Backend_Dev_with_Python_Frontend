@@ -1,17 +1,35 @@
 "use client"
 
 import React, { useState } from "react";
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, User } from "lucide-react";
 import Link from "next/link";
+import axios from "axios";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function BlogRegiser() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Register attempt:", { email, password });
+    const response = await axios.post(`${BACKEND_URL}/api/auth/register`, {
+      username: email,
+      password,
+      name: username
+    });
+    if(response.status == 200 || response.status == 201) {
+      toast.success("User registered successfully!");
+      console.log(response.data);
+      router.push("/login");
+    } else {
+      toast.error("Failed to register user. Please try again."); 
+      setPassword("");  
+    }
   };
 
   return (
@@ -30,7 +48,27 @@ export default function BlogRegiser() {
 
         <div className="bg-white rounded-3xl shadow-xl p-8 border border-slate-200">
           <div className="space-y-6">
-
+            <div>
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-slate-700 mb-2"
+              >
+                Username
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  type="name"
+                  id="name"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="block w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-slate-900"
+                  placeholder="username"
+                />
+              </div>
+            </div>
             <div>
               <label
                 htmlFor="email"

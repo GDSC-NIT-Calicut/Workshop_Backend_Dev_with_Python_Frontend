@@ -1,22 +1,41 @@
-"use client"
+"use client";
 
 import React, { useState } from "react";
-import { Mail, Lock, Eye, EyeOff, ArrowRight} from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function BlogLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const handleSubmit = (e) => {
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const router = useRouter();
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login attempt:", { email, password});
+    try {
+      const response = await axios.post(`${BACKEND_URL}/api/auth/login`, {
+        username: email,
+        password,
+      });
+
+      console.log(response.data);
+      localStorage.setItem("access_token", response.data.access_token);
+      localStorage.setItem("refresh_token", response.data.refresh_token);
+      toast.success("Login successful!");
+      router.push("/");
+    } catch (error) {
+      console.log(error);
+      toast.error("Login failed. Please check your credentials and try again.");
+      setPassword("");
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
-
         <div className="text-center mb-8">
           <div className="inline-block p-3 bg-slate-900 rounded-2xl mb-4">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg"></div>
@@ -29,7 +48,6 @@ export default function BlogLogin() {
 
         <div className="bg-white rounded-3xl shadow-xl p-8 border border-slate-200">
           <div className="space-y-6">
-
             <div>
               <label
                 htmlFor="email"
@@ -84,9 +102,6 @@ export default function BlogLogin() {
                 </button>
               </div>
             </div>
-
-
-
 
             <button
               onClick={handleSubmit}
