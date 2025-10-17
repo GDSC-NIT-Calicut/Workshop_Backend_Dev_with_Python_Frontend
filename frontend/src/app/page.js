@@ -1,68 +1,43 @@
 "use client";
 
 import Navbar from "@/components/navbar";
+import { useEffect, useEffectEvent, useState } from "react";
+import useAuth from "@/hooks/authHook";
+import { toast } from "sonner";
+import axios from "axios";
 
 export default function BlogHomepage() {
-  const featuredPost = {
-    category: "Technology",
-    title: "The Future of Web Development in 2025",
-    excerpt: "Discover the latest trends shaping how we build for the web, from AI-powered tools to new frameworks that are revolutionizing the development experience.",
-    author: "Sarah Chen",
-    date: "October 15, 2025",
-    readTime: "8 min read"
-  };
 
-  const posts = [
-    {
-      category: "Design",
-      title: "Mastering Minimalist Design",
-      excerpt: "Learn the principles behind creating beautiful, functional interfaces with less.",
-      readTime: "5 min read",
-      gradient: "from-pink-500 to-rose-500"
-    },
-    {
-      category: "Lifestyle",
-      title: "Finding Balance in a Digital World",
-      excerpt: "Practical strategies for maintaining wellness while staying connected.",
-      readTime: "7 min read",
-      gradient: "from-cyan-500 to-blue-500"
-    },
-    {
-      category: "Business",
-      title: "Building Sustainable Startups",
-      excerpt: "Key insights from founders who prioritized long-term growth over quick wins.",
-      readTime: "10 min read",
-      gradient: "from-green-400 to-cyan-400"
-    },
-    {
-      category: "Travel",
-      title: "Hidden Gems of Southeast Asia",
-      excerpt: "Explore breathtaking destinations off the beaten path.",
-      readTime: "6 min read",
-      gradient: "from-pink-400 to-yellow-400"
-    },
-    {
-      category: "Technology",
-      title: "AI and Creative Expression",
-      excerpt: "How artificial intelligence is transforming the creative industries.",
-      readTime: "9 min read",
-      gradient: "from-cyan-600 to-indigo-900"
-    },
-    {
-      category: "Food",
-      title: "The Art of Slow Cooking",
-      excerpt: "Rediscovering traditional techniques for modern kitchens.",
-      readTime: "4 min read",
-      gradient: "from-teal-300 to-pink-300"
+
+
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+
+  const [posts, setPosts] = useState([]);
+
+  const gradients = ["from-pink-500 to-rose-500", "from-indigo-500 to-purple-500", "from-green-400 to-blue-500", "from-yellow-400 to-red-500", "from-teal-400 to-cyan-500"];
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await axios.get(`${BACKEND_URL}/api/blog/`);
+        if (response.status === 200) {
+          setPosts(response.data);
+        } else {
+          toast.error("Failed to fetch posts. Please try again.");
+        }
+      } catch (error) {
+        console.log("Error fetching posts:", error);
+        toast.error("Failed to fetch posts. Please try again.");
+      }
     }
-  ];
+
+    fetchPosts();
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <Navbar />
 
-      {/* Hero Section */}
       <section className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-24 px-4 text-center">
         <h1 className="text-5xl md:text-6xl font-bold mb-4 animate-fade-in-up">
           Welcome to ThoughtSpace
@@ -72,7 +47,6 @@ export default function BlogHomepage() {
         </p>
       </section>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         
         <section>
@@ -83,13 +57,13 @@ export default function BlogHomepage() {
                 key={index}
                 className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer"
               >
-                <div className={`h-48 bg-gradient-to-br ${post.gradient}`}></div>
+                <div className={`h-48 bg-gradient-to-br ${gradients[index % gradients.length]}`}></div>
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
                     {post.title}
                   </h3>
                   <p className="text-gray-600 text-sm mb-4">
-                    {post.excerpt}
+                    {post.body}
                   </p>
                 </div>
               </div>
@@ -98,7 +72,6 @@ export default function BlogHomepage() {
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="bg-gray-800 text-white text-center py-8 mt-16">
         <p>&copy; 2025 ThoughtSpace. All rights reserved.</p>
       </footer>
