@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import useAuth from "@/hooks/authHook";
 
+
 export default function BlogDashboard() {
   const [activeTab, setActiveTab] = useState("create");
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
-  const {loading, username, id, logout} = useAuth();
+  const { loading, username, id, logout } = useAuth();
   const [formData, setFormData] = useState({
     title: "",
     body: "",
@@ -32,15 +33,20 @@ export default function BlogDashboard() {
     const fetchPosts = async () => {
       try {
         const access_token = localStorage.getItem("access_token");
-        const response = await axios.get(`${BACKEND_URL}/api/blog/`, {
+        if(!access_token) {
+          toast.error("You must be logged in to view your posts");
+          router.push("/login");
+          return;
+        }
+        const response = await axios.get(`${BACKEND_URL}/api/me/`, {
           headers: {
             Authorization: `Bearer ${access_token}`,
           },
         });
 
         if (response.status === 200) {
-          console.log("Fetched posts:", response.data);
-          setPosts(response.data);
+          console.log("Fetched posts:", response.data.blogs);
+          setPosts(response.data.blogs);
         } else {
           toast.error("Failed to fetch posts. Please try again.");
         }
@@ -60,7 +66,6 @@ export default function BlogDashboard() {
       [name]: value,
     }));
   };
-
 
   const handlePublish = async () => {
     if (!formData.title || !formData.body) {
@@ -91,7 +96,8 @@ export default function BlogDashboard() {
 
       if (response.status === 200 || response.status === 201) {
         toast.success("Post published successfully!");
-        setPosts([...posts, formData]);
+        setPosts([...posts, response.data]);
+
         setFormData({ title: "", body: "" });
       } else {
         toast.error("Failed to publish post. Please try again.");
@@ -158,7 +164,6 @@ export default function BlogDashboard() {
       toast.warning("Please fill in all required fields");
       return;
     }
-
     const access_token = localStorage.getItem("access_token");
     if (!access_token) {
       toast.error("You must be logged in to update a post");
@@ -166,8 +171,10 @@ export default function BlogDashboard() {
       return;
     }
 
+    console.log("Editing post data:", editingPost);
+
     try {
-      const response = await axios.put(
+      const response = await axios.patch(
         `${BACKEND_URL}/api/blog/${editingPost.id}`,
         {
           title: formData.title,
@@ -179,6 +186,8 @@ export default function BlogDashboard() {
           },
         }
       );
+
+      console.log("Update response:", response);
 
       if (response.status === 200) {
         toast.success("Post updated successfully!");
@@ -220,13 +229,19 @@ export default function BlogDashboard() {
               ThoughtSpace Dashboard
             </div>
             <div className="flex items-center space-x-4">
-              <Link href={"/"} className="text-white hover:opacity-80 transition-opacity">
+              <Link
+                href={"/"}
+                className="text-white hover:opacity-80 transition-opacity"
+              >
                 View Site
               </Link>
               <div className="flex items-center space-x-3">
                 <span className="text-white hidden sm:block">{username}</span>
               </div>
-              <button onClick={logout} className="text-white hover:opacity-80 transition-opacity">
+              <button
+                onClick={logout}
+                className="text-white hover:opacity-80 transition-opacity"
+              >
                 Sign Out
               </button>
             </div>
@@ -324,9 +339,9 @@ export default function BlogDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {posts.map((post) => (
+                    {posts.map((post, index) => (
                       <tr
-                        key={post.id}
+                        key={index}
                         className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                       >
                         <td className="py-4 px-4 text-sm text-gray-900 font-medium">
@@ -334,8 +349,8 @@ export default function BlogDashboard() {
                         </td>
                         <td className="py-4 px-4">
                           <div className="flex space-x-2">
-                            <button 
-                              onClick={() => handleEditClick(post)} 
+                            <button
+                              onClick={() => handleEditClick(post)}
                               className="text-indigo-600 hover:text-indigo-800 text-sm font-medium transition-colors"
                             >
                               Edit
@@ -358,32 +373,36 @@ export default function BlogDashboard() {
         </div>
       </div>
 
-      {/* Edit Modal */}
       {isEditMode && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
             onClick={handleCancelEdit}
           ></div>
-          
+
           <div className="flex min-h-full items-center justify-center p-4">
             <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-auto transform transition-all">
-
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Edit Post
-                </h2>
+                <h2 className="text-2xl font-bold text-gray-900">Edit Post</h2>
                 <button
                   onClick={handleCancelEdit}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
-
 
               <div className="p-6 space-y-6">
                 <div>
@@ -399,7 +418,7 @@ export default function BlogDashboard() {
                     placeholder="Enter post title..."
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Content *
@@ -415,7 +434,6 @@ export default function BlogDashboard() {
                 </div>
               </div>
 
-
               <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
                 <button
                   onClick={handleCancelEdit}
@@ -424,7 +442,7 @@ export default function BlogDashboard() {
                   Cancel
                 </button>
                 <button
-                  onClick={handleUpdatePost}
+                  onClick={() => handleUpdatePost(formData.id)}
                   className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors shadow-sm"
                 >
                   Update Post
