@@ -26,6 +26,9 @@ const Navbar = () => {
               </Link>
               }
             </li>
+            <li>
+              {username}
+            </li>
           </ul>
         </div>
       </nav>

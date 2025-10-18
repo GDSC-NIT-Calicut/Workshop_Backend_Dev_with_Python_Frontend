@@ -8,7 +8,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 
 export default function BlogLogin() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
@@ -17,7 +17,7 @@ export default function BlogLogin() {
     e.preventDefault();
     try {
       const response = await axios.post(`${BACKEND_URL}/api/auth/login`, {
-        username: email,
+        username,
         password,
       });
 
@@ -62,10 +62,10 @@ export default function BlogLogin() {
                 <input
                   type="email"
                   id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="block w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-slate-900"
-                  placeholder="you@example.com"
+                  placeholder="Username"
                 />
               </div>
             </div>
